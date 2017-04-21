@@ -730,7 +730,7 @@ private:
 public:
 	_binarytree()
 	{
-		_root = new _btnode;
+		/*_root = new _btnode;*/
 	};
 	void deleteTree(_btnode * r)
 	{
@@ -748,54 +748,71 @@ public:
 	void create() //Ä¬ÈÏÏÈÐò
 	{
 		queue<int> q;
-		queue<_btnode> _q;
-		cout << "input tree\n(using -9999 as placeholder)\n";
+		queue<_btnode *> _q;
+		cout << "input tree\n(using -999 as placeholder)\n";
 		int a;
 		while (cin >> a)
 			q.push(a);
 		while (!q.empty())
 		{
-			_btnode t;
-			t.data_ = q.front();
-			t.left = nullptr;
-			t.right = nullptr;
+			_btnode * t = new _btnode;
+			t->data_ = q.front();
+			t->left = nullptr;
+			t->right = nullptr;
 			q.pop();
 			_q.push(t);
 		}
 		this->create(_q, _root);
 	};
-	void create(queue<_btnode> & q, _btnode * & r)
+	void create(queue<_btnode *> & q, _btnode * & r)
 	{
-		r = &q.front();
+		r = q.front();
 		q.pop();
 		if (q.empty())
 			return;
-		if (q.front().data_ != -9999)
+		if (!q.empty() && q.front()->data_ != -999)
 		{
-			r->left = &q.front();
+			r->left = q.front();
 			this->create(q, r->left);
 		}
-		else
+		else if (!q.empty())
 			q.pop();
-		if (q.front().data_ != -9999)
+		if (!q.empty() && q.front()->data_ != -999)
 		{
-			r->right = &q.front();
+			r->right = q.front();
 			this->create(q, r->right);
 		}
-		else
+		else if (!q.empty())
 			q.pop();
 	};
 
-	_btnode *root()
+	_btnode * root()
 	{
 		return _root;
 	}
-	void pre(_btnode *r)
+	void pre(_btnode *& r) const
 	{
 		cout << r->data_;
-		pre(r->left);
-		pre(r->right);
+		if (r->left != nullptr)
+			pre(r->left);
+		if (r->right != nullptr)
+			pre(r->right);
 	};
-	
+	void in(_btnode *& r) const
+	{
+		if (r->left != nullptr)
+			pre(r->left);
+		cout << r->data_;
+		if (r->right != nullptr)
+			pre(r->right);
+	};
+	void last(_btnode *& r) const
+	{
+		if (r->left != nullptr)
+			pre(r->left);
+		if (r->right != nullptr)
+			pre(r->right);
+		cout << r->data_;
+	};
 };
 #endif // !DATASTRUCTURES_H
