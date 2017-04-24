@@ -1,6 +1,7 @@
 #ifndef DATASTRUCTURES_H
 #define DATASTRUCTURES_H
 #include <initializer_list>
+#include <math.h>
 #include <queue>
 #include <stack>
 #include <vector>
@@ -732,6 +733,19 @@ public:
 	{
 		/*_root = new _btnode;*/
 	};
+	_binarytree(initializer_list<int> list)
+	{
+		queue<_btnode *> q;
+		for (auto i : list)
+		{
+			_btnode * t = new _btnode;
+			t->data_ = i;
+			t->left = nullptr;
+			t->right = nullptr;
+			q.push(t);
+		}
+		this->create(q, _root);
+	};
 	void deleteTree(_btnode * r)
 	{
 		if (r->left != nullptr)
@@ -814,5 +828,12 @@ public:
 			pre(r->right);
 		cout << r->data_;
 	};
+	void printNode(_btnode * r, int k=1) const
+	{
+		int f = floor(log(k) / log(2)) + 1;
+		cout << r->data_ << ' ' << f << endl;
+		this->printNode(r->left, k * 2);
+		this->printNode(r->right, k * 2 + 1);
+	}
 };
 #endif // !DATASTRUCTURES_H

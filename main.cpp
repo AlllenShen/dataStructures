@@ -130,7 +130,6 @@ using namespace std;
 //		}
 //	}
 //}
-
 List<int> sort(List<int> L)
 {
 	node<int> * m = L.start(), *p = m;
@@ -165,12 +164,25 @@ void print_list(List_<int> list)
 	for (int i = 1; i <= list.size(); i++)
 		cout << setw(10) << list.get(i)->pre;
 }
+void printPath()
+{
+	vector<int> tree;
+	tree.push_back(-9999);
+	int a;
+	while (cin >> a)
+		tree.push_back(a);
+	int index = 1;
+	
+}
+void path(vector<int> & t, int & i)
+{
+	int index = i;
+	
+}
 
 int main()
 {
-	_binarytree a;
-	a.create();
-	_btnode * r = a.root();
-	a.pre(r);
+	_binarytree tree{ 1, 2, 3, -999, 4, 5, -999, -999, 6 };
+	tree.printNode(tree.root());
 	system("pause");
 }
