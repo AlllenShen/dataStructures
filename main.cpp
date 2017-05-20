@@ -164,25 +164,24 @@ void print_list(List_<int> list)
 	for (int i = 1; i <= list.size(); i++)
 		cout << setw(10) << list.get(i)->pre;
 }
-void printPath()
+
+void path(vector<int> & l, stack<int> & p, int i)
 {
-	vector<int> tree;
-	tree.push_back(-9999);
-	int a;
-	while (cin >> a)
-		tree.push_back(a);
-	int index = 1;
+	if (i >= l.size()/* || l[i] == -1*/ )
+	{
+		printStack(p);
+		p.pop();
+	}
+	else
+		p.push(l[i]);
+	path(l, p, i * 2);
 	
-}
-void path(vector<int> & t, int & i)
-{
-	int index = i;
-	
+	path(l, p, i * 2 + 1);
 }
 
 int main()
 {
-	_binarytree tree{ 1, 2, 3, -999, 4, 5, -999, -999, 6 };
-	tree.printNode(tree.root());
+	undirectedGragh g;
+	g.create();
 	system("pause");
 }

@@ -1,6 +1,9 @@
 #ifndef DATASTRUCTURES_H
 #define DATASTRUCTURES_H
+
 #include <initializer_list>
+#include <vector>
+#include <string>
 #include <math.h>
 #include <queue>
 #include <stack>
@@ -717,6 +720,17 @@ stack<type> transport(stack<type> s) //生成逆置栈
 	return temp;
 }
 
+void printStack(stack<int> s)
+{
+	stack<int> temp = transport(s);
+	while (!temp.empty())
+	{
+		cout << temp.top() << ' ';
+		temp.pop();
+	}
+	cout << endl;
+}
+
 struct _btnode  //node without templet
 {
 	int data_;
@@ -831,9 +845,460 @@ public:
 	void printNode(_btnode * r, int k=1) const
 	{
 		int f = floor(log(k) / log(2)) + 1;
-		cout << r->data_ << ' ' << f << endl;
-		this->printNode(r->left, k * 2);
-		this->printNode(r->right, k * 2 + 1);
+		cout << '(' << r->data_ << ' ' 
+			<< f  << ')' << endl;
+		if (r->left != nullptr)
+			this->printNode(r->left, k * 2);
+		if (r->right != nullptr)
+			this->printNode(r->right, k * 2 + 1);
 	}
 };
+
+struct huffmanNode
+{
+	int data;
+	int frequency;
+	huffmanNode * parent;
+	huffmanNode * left;
+	huffmanNode * right;
+};
+huffmanNode * newNode(int data, int frequency, huffmanNode* left = nullptr,
+	              huffmanNode* right=nullptr, huffmanNode* parent = nullptr)
+{
+	huffmanNode * t = new huffmanNode;
+	t->data = data;
+	t->frequency = frequency;
+	t->parent = parent;
+	t->left = left;
+	t->right = right;
+	return t;
+}
+void setParent(huffmanNode* parent)
+{
+	if (parent->left != nullptr)
+		parent->left->parent = parent;
+	if (parent->right != nullptr)
+		parent->right->parent = parent;
+}
+
+#define charNum 129
+class huffman 
+{
+private:
+	huffmanNode * _root;
+	int frequency[charNum];
+	string codes[charNum];
+	string _str;
+	string _encode;
+public:
+	huffman(string str)
+	{
+		_str = str;
+		_root = nullptr;
+		_encode = "\0";
+		for (int i = 0; i < 128; i++)
+		{
+			frequency[i] = 0;
+			codes[i] = "\0";
+		}
+		for (char item : str)
+			frequency[item]++;
+		vector<huffmanNode*> create_list;
+		for (int i = 0; i < 128; i++)
+			if (frequency[i] != 0)
+			{
+				huffmanNode * t = newNode(i, frequency[i]);
+				create_list.push_back(t);
+			}
+		create(create_list);
+		calculateCode();
+	};
+	void create(vector<huffmanNode*> list)
+	{
+		if (list.size() == 1)
+		{
+			_root = list[0];
+			return;
+		}
+		huffmanNode * t1 = this->findmin(list);
+		this->deleteItem(list, t1);
+		huffmanNode * t2 = this->findmin(list);
+		this->deleteItem(list, t2);
+		huffmanNode * newnode = newNode(-1, 
+						t1->frequency + t2->frequency, t1, t2);
+		setParent(newnode);
+		list.push_back(newnode);
+		this->create(list);
+		//this->calculateCode();
+	}
+	huffmanNode * findmin(vector<huffmanNode*> list)
+	{
+		huffmanNode * min = list[0];
+		for (int i = 1; i < list.size() - 1; i++)
+			if (list[i]->frequency < min->frequency)
+				min = list[i];
+		return min;
+	}
+	void deleteItem(vector<huffmanNode*> & list,
+					  huffmanNode* item)
+	{
+		vector<huffmanNode*>::iterator it = list.begin();
+		while (it != list.end())
+		{
+			if ((*it) == item)
+			{
+				list.erase(it);
+				return;
+			}
+			else
+				it++;
+		}
+	}
+	~huffman()
+	{
+		this->deleteTree(_root);
+	};
+	void deleteTree(huffmanNode * r)
+	{
+		if (r->left != nullptr)
+			deleteTree(r->left);
+		else if (r->right != nullptr)
+			deleteTree(r->right);
+		else
+			delete r;
+	};
+
+	huffmanNode* root()
+	{
+		return _root;
+	}
+	void pre(huffmanNode* r)
+	{
+		cout << "data:" << r->data << '\t'
+			<< "frequency:" << r->frequency << endl;
+		if (r->left != nullptr)
+			this->pre(r->left);
+		if (r->right != nullptr)
+			this->pre(r->right);
+	}
+	void calculateCode()
+	{
+		vector<int> charList;
+		for (int i = 0; i < charNum; i++)
+			if (frequency[i] != 0)
+				charList.push_back(i);
+		for (int i : charList)
+		{
+			huffmanNode* p = nullptr;
+			find(i, p, _root);
+			vector<huffmanNode*> path_ = path(p);
+			vector<string> code;
+			string s = "\0";
+			for (int j = 1; j < path_.size(); j++)
+			{
+				if (path_[j - 1]->left == path_[j])
+					code.push_back("0");
+				else
+					code.push_back("1");
+			}
+			for (int j = 0; j < code.size(); j++)
+				s += code[j];
+			codes[i] = s;
+		}
+	};
+	void find(int c, huffmanNode*& p, huffmanNode* r)
+	{
+		if (r->data == c)
+			p = r;
+		if (r->left != nullptr)
+			this->find(c, p, r->left);
+		if (r->right != nullptr)
+			this->find(c, p, r->right);
+	}
+	vector<huffmanNode*> path(huffmanNode* target)
+	{
+		huffmanNode* p = target;
+		stack<huffmanNode*> s;
+		while (p != _root)
+		{
+			s.push(p);
+			p = p->parent;
+		}
+		s.push(p);
+		vector<huffmanNode*> Path;
+		while (!s.empty())
+		{
+			Path.push_back(s.top());
+			s.pop();
+		}
+		return Path;
+	}
+	void encode()
+	{
+		for (auto i : _str)
+			_encode += codes[i];
+		cout << "encoding...\n";
+		cout << "Raw:" << _str << endl
+		     << "Encoded:" << _encode << endl << endl;
+	}
+	void decode()
+	{
+		string s = "\0";
+		for (int i = 0; i < _encode.size();)
+		{
+			huffmanNode* p = _root;
+			char c;
+			while (has_child(p))
+			{
+				if (_encode[i] == '0')
+					p = p->left;
+				else
+					p = p->right;
+				i++;
+			}
+			c = p->data;
+			s += c;
+		}
+		cout << "decoding...\n"
+			 << "Encoded:" << _encode << endl
+			 << "Raw:" << s << endl << endl;
+	}
+	bool has_child(huffmanNode* r)
+	{
+		if (r->left != nullptr || r->right != nullptr)
+			return true;
+		else
+			return false;
+	}
+};
+
+template<typename T>
+struct gVt
+{
+	int id;
+	T data;
+	int weight; //向后权重
+	gVt<T>* next;
+};
+
+template<typename T>
+gVt<T>* newVt(int id, T data, int w = 1, gVt<T>* next = nullptr)
+{
+	gVt<T>* n = new gVt<T>;
+	n->id = id;
+	n->weight = w;
+	n->data = data;
+	n->next = next;
+	return n;
+}
+
+template<typename T>
+void deleteItem(vector<T> & list, T item)
+{
+	vector<T>::iterator it = list.begin();
+	while (it != list.end())
+	{
+		if ((*it) == item)
+		{
+			list.erase(it);
+			return;
+		}
+		else
+			it++;
+	}
+}
+
+template<typename type>
+using Input = pair<vector<type>, vector<vector<int>>>;
+
+template<typename type>
+class graph //directed
+{
+private:
+	vector<gVt<type>*> vertexs;
+	int currentNum;
+public:
+	graph()
+	{
+		currentNum = 0;
+	};
+	virtual ~graph()
+	{
+		for (int i = 0; i < currentNum; i++)
+			deleteVertex(i);
+	};
+	void create()
+	{
+		Input<type> in = input();
+		create(in.first, in.second);
+	}
+	Input<type> input()
+	{
+		vector<type> data;
+		vector<vector<int>> dir;
+		cout << "input data:" << endl;
+		int a, b, w;
+		while (cin >> a)
+			data.push_back(a);
+		cin.clear();
+		cin.ignore(1024, '\n');
+		cout << "confirme:" << endl 
+			<< setw(8) << "id:";
+		for (int i = 0; i < data.size(); i++)
+			cout << setw(5) << i;
+		cout << endl << setw(8) << "data:";
+		for (auto i : data)
+			cout << setw(5) << i;
+		cout << endl;
+		cout << "input direction:\nSet weight now?(Y/N) ";
+		char flag;
+		cin >> flag;
+		cout << "direction:\n";
+		if (flag == 'Y' || flag == 'y')
+			while (cin >> a >> b >> w)
+			{
+				vector<int> t = getDir(a, b, w);
+				dir.push_back(t);
+			}
+		else
+			while (cin >> a >> b)
+			{
+				vector<int> t = getDir(a, b);
+				dir.push_back(t);
+			}
+		pair<vector<type>, vector<vector<int>>> s(data, dir);
+		return s;
+	}
+	vector<int> getDir(int a, int b, int w = -1)
+	{
+		vector<int> t;
+		t.push_back(a);
+		t.push_back(b);
+		t.push_back(w);
+		return t;
+	}
+	void create(vector<type> v, vector<vector<int>> dir)
+	{
+		currentNum = v.size();
+		for (int i=0; i < v.size(); i++)
+		{
+			gVt<type>* n = newVt(i, v[i]);
+			vertexs.push_back(n);
+		}
+		for (vector<int> p : dir)
+			insertEdge(p[0], p[1], p[2]);
+	}
+	gVt<type>* find_by_data(int data)
+	{
+		for (gVt<type>* i : vertexs)
+			if (i->data == data)
+				return &i;
+	};
+	gVt<type>* find_by_id(int id)
+	{
+		for (gVt<type>* i : vertexs)
+			if (i->id == id)
+				return i;
+	};
+	vector<gVt<type>*> find_all(int data)
+	{
+		vector<gVt<type>*> s;
+		for (gVt<type>* i : vertexs)
+			if (i->data == data)
+				s.push_back(i);
+		return s;
+	};
+	gVt<type>* next(gVt<type>* now)
+	{
+		return now->next;
+	};
+	virtual void insertVertex(type data, vector<vector<int>> dir)
+	{
+		gVt<type>* new_ = newVt(currentNum, data);
+		vertexs.push_back(new_);
+		for (vector<int> p : dir)
+			insertEdge(p[0], p[1], p[2]);
+		currentNum++;
+	};
+	virtual void insertEdge(int a, int b, int w)
+	{
+		gVt<type>* Va = find_by_id(a),
+				*Vb = find_by_id(b),
+				*newB = newVt(Vb->id, Vb->data, Vb->weight);
+		while (Va->next != nullptr)
+			Va = Va->next;
+		Va->weight = w;
+		Va->next = newB;
+	};
+	virtual void changeWeight(int a, int b, int w)
+	{
+		gVt<type>* Va = find_by_id(a),
+			     * Vb = find_by_id(b);
+		while (Va->next->id != Vb->id)
+			Va = Va->next;
+		Va->weight = w;
+	};
+	virtual void deleteVertex(int id)
+	{
+		gVt<type>* t = find_by_id(id);
+		deleteItem(vertexs, t);
+		for (gVt<type>* i : vertexs)
+			deleteEdge(i->id, t->id);
+		currentNum--;
+	};
+	virtual void deleteEdge(int a, int b)
+	{
+		gVt<type>* Va = find_by_id(a), *Vb = find_by_id(b),
+				*p1 = Va->next, *p2 = p1->next;
+		while (p2->next != nullptr)
+		{
+			if (p1 == Vb)
+			{
+				Va->next = p2;
+				break;
+			}
+			p1 = p2;
+			Va = p1;
+			p2 = p2->next;
+		}
+		if (p2 == Vb)
+			p1->next = nullptr;
+	};
+
+};
+
+class undirectedGragh : graph<int>
+{
+public:
+	using dir_iter = vector<vector<int>>::iterator;
+	void create()
+	{
+		Input<int> in = graph::input();
+		create(in.first, in.second);
+	}
+	void create(vector<int> v, vector<vector<int>> dir)
+	{
+		for (int i = 0; i < dir.size(); i++)
+			if (!has_inverse(dir, dir[i]))
+			{
+				vector<int> t;
+				t.push_back(dir[i][1]);
+				t.push_back(dir[i][0]);
+				t.push_back(dir[i][2]);
+				dir.push_back(t);
+			}
+		graph::create(v, dir);
+	}
+	bool has_inverse(vector<vector<int>> v, vector<int> p)
+	{
+		for (auto i : v)
+			if (i[0] == p[1]
+				&& i[1] == p[0])
+				return true;
+		return false;
+	}
+};
+
+
+
 #endif // !DATASTRUCTURES_H
