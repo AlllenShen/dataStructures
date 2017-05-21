@@ -1267,21 +1267,22 @@ public:
 
 };
 
-class undirectedGragh : graph<int>
+template<typename type>
+class undirectedGragh : graph<type>
 {
 public:
-	using dir_iter = vector<vector<int>>::iterator;
+	using dir_iter = vector<vector<type>>::iterator;
 	void create()
 	{
-		Input<int> in = graph::input();
+		Input<type> in = graph::input();
 		create(in.first, in.second);
 	}
-	void create(vector<int> v, vector<vector<int>> dir)
+	void create(vector<type> v, vector<vector<type>> dir)
 	{
 		for (int i = 0; i < dir.size(); i++)
 			if (!has_inverse(dir, dir[i]))
 			{
-				vector<int> t;
+				vector<type> t;
 				t.push_back(dir[i][1]);
 				t.push_back(dir[i][0]);
 				t.push_back(dir[i][2]);
@@ -1289,7 +1290,7 @@ public:
 			}
 		graph::create(v, dir);
 	}
-	bool has_inverse(vector<vector<int>> v, vector<int> p)
+	bool has_inverse(vector<vector<type>> v, vector<type> p)
 	{
 		for (auto i : v)
 			if (i[0] == p[1]
@@ -1298,6 +1299,7 @@ public:
 		return false;
 	}
 };
+
 
 
 
