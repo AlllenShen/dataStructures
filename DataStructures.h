@@ -1110,9 +1110,11 @@ void deleteItem(vector<T> & list, T item)
 
 template<typename type>
 using Input = pair<vector<type>, vector<vector<int>>>;
+template<typename type>
+using dir_iter = vector<vector<type>>::iterator;
 
 template<typename type>
-class graph //directed
+class graph 
 {
 private:
 	vector<gVt<type>*> vertexs;
@@ -1127,7 +1129,7 @@ public:
 		for (int i = 0; i < currentNum; i++)
 			deleteVertex(i);
 	};
-	void create()
+	virtual void create()
 	{
 		Input<type> in = input();
 		create(in.first, in.second);
@@ -1177,7 +1179,7 @@ public:
 		t.push_back(w);
 		return t;
 	}
-	void create(vector<type> v, vector<vector<int>> dir)
+	virtual void create(vector<type> v, vector<vector<int>> dir)
 	{
 		currentNum = v.size();
 		for (int i=0; i < v.size(); i++)
@@ -1208,10 +1210,28 @@ public:
 				s.push_back(i);
 		return s;
 	};
-	gVt<type>* next(gVt<type>* now)
+	gVt<type>* firstV(gVt<type>* v)
 	{
-		return now->next;
-	};
+		vector<gVt<type>*>::iterator it = vertexs.begin();
+		while (it != vertexs.end())
+		{
+			if (*it == v)
+				return *it;
+			it++;
+		}
+		return nullptr;
+	}
+	gVt<type>* nextV(gVt<type>* now)
+	{
+		vector<gVt<type>*>::iterator it = vertexs.begin();
+		while (it != vertexs.end())
+		{
+			if (*it == now)
+				return *(it++);
+			it++;
+		}
+		return nullptr;
+	}
 	virtual void insertVertex(type data, vector<vector<int>> dir)
 	{
 		gVt<type>* new_ = newVt(currentNum, data);
@@ -1224,10 +1244,7 @@ public:
 	{
 		gVt<type>* Va = find_by_id(a),
 				*Vb = find_by_id(b),
-				*newB = newVt(Vb->id, Vb->data, Vb->weight);
-		while (Va->next != nullptr)
-			Va = Va->next;
-		Va->weight = w;
+				*newB = newVt(Vb->id, Vb->data, 1, Va->next);
 		Va->next = newB;
 	};
 	virtual void changeWeight(int a, int b, int w)
@@ -1264,14 +1281,12 @@ public:
 		if (p2 == Vb)
 			p1->next = nullptr;
 	};
-
 };
 
 template<typename type>
 class undirectedGragh : graph<type>
 {
 public:
-	using dir_iter = vector<vector<type>>::iterator;
 	void create()
 	{
 		Input<type> in = graph::input();
@@ -1298,6 +1313,51 @@ public:
 				return true;
 		return false;
 	}
+	void DFS()
+	{
+		vector<bool> visited[currentNum] { true };
+		for (gVt<type>* i : vertex) //去除id不存在项
+			visited[i->id] = false;
+		for (gVt<type>* i : vertex)
+			if (visited[i->id] == false)
+				dfs(i, vector<bool> & visited);
+	}
+	void dfs(gVt<type>* v, vector<bool> & visited)
+	{
+
+		visited[v->id] = true;
+		gVt<type>* w = firstV(v);
+		while (w != nullptr)
+		{
+			if (visited[w->id] == false)
+				dfs(w);
+			w = w->next;
+		}
+	}
+};
+
+template<typename type>
+class directedGragh : graph<type>
+{
+private:
+	vector<gVt<type>*> invers_vertex;
+public:
+	using dir_vec = vector<vector<int>>;
+	~directedGragh();
+	void create() 
+	{
+		Input<type> in = graph::input();
+		create(in.first, in.second);
+		dir_vec dir_ = invers_dir(in.second);
+		create_invers(in.first, dir_);
+	};
+	void create_invers(vector<type> v, dir_vec dir)
+	{
+		
+	};
+	void invers_dir(dir_vec dir);
+	void deleteVertex(int id);
+	
 };
 
 

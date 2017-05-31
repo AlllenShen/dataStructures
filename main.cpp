@@ -181,7 +181,7 @@ void path(vector<int> & l, stack<int> & p, int i)
 
 int main()
 {
-	undirectedGragh g;
-	g.create();
+	undirectedGragh<int> g;
+	//g.create();
 	system("pause");
 }
